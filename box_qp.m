@@ -11,6 +11,7 @@ TOL = 1e-4;
 ALPHA = 0.01;
 BETA  = 0.5;
 MAXITER = 100;
+DELTA = 0.1; % added to make KKT system sqd
 
 % Barrier method
 % given: strictly feasible x, 
@@ -33,17 +34,24 @@ MAXITER = 100;
 % 3. Update
 
 t  = 1.1;
-x  = sparse(x0);
-nu = sparse(nu0);
+x  = full(x0);
+nu = full(nu0);
 for iter=1:MAXITER
     % 1. Centering step: minimize t*f0(x) + phi(x) 
     %                    subject to Ax = b
     rd = (qp.d) - (qp.C)*x;
     rp = qp.A*x - qp.b;
-    h = 1./rd;
-    H = [t*(qp.P) + (qp.C)'*spdiags(h.^2,0,nin,nin)*(qp.C), (qp.A)'; (qp.A), sparse(neq, neq)];
-    rhs = -full([t*(qp.P*x + qp.q) + (qp.C)'*h; rp]);
-    sol = ldlsparse(H, sd.p, rhs); % sol = H\rhs
+    h  = 1./rd;
+    H  = [t*(qp.P) + (qp.C)'*spdiags(h.^2,0,nin,nin)*(qp.C), (qp.A)'; (qp.A), sparse(neq, neq)];
+    dH = spdiags(DELTA*[ones(nx,1); -ones(neq,1)], 0, nx+neq, nx+neq);
+    rhs = -[t*(qp.P*x + qp.q) + (qp.C)'*h; rp];
+    
+    % solve via LDL factorization
+    %sol = H\rhs
+    %sol = ldlsparse(H, sd.p, rhs); 
+    HpdH = H + dH;
+    sol = ldlsparse(HpdH, sd.p, rhs);
+    %sol = sol + ldlsparse(HpdH, sd.p, rhs - H*sol); % refinement
 end
 
 if k == MAXITER
@@ -71,11 +79,6 @@ end
 
 
 
-
-
-
-
-
-
 end
+
 

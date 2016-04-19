@@ -20,8 +20,8 @@ B = 10*reshape(1:n*m,n,m);
 
 % generate costs
 Q = eye(n);
-R = eye(m);
 Qf = eye(n);
+R = eye(m);
 %Q = reshape(1:n*n,n,n);
 %Qf = 100*reshape(1:n*n,n,n);
 %R = reshape((m*m+1):(m*m+m*m),m,m);
