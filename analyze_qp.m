@@ -1,4 +1,14 @@
-function sd = analyze_qp(qp)
+function sd = analyze_qp(qp,varargin)
+
+% check arguments
+narginchk(1,2);
+quiet = false;
+if nargin > 1
+    s = varargin{1};
+    if strcmpi(s,'quiet')
+        quiet = true;
+    end
+end
 
 P = qp.P;
 A = qp.A;
@@ -7,22 +17,25 @@ C = qp.C;
 % KKT matrix structure
 H = [P + C'*C, A'; A, sparse(size(A,1), size(A,1))];
 
-% visualize KKT sparsity pattern
-figure(1); 
-subplot(131);
-spy(H);
-title('KKT structure');
+if ~quiet
+    % visualize KKT sparsity pattern
+    subplot(131);
+    spy(H);
+    title('KKT structure');
+end
 
 % calculate unoptimized Cholesky stats
 [count, ~, ~, ~, L] = symbfact(H,'sym','lower');
 flopcount = sum(count.^2);
-figure(1); 
-subplot(132);
-spy(tril(H));
-hold on;
-spy(tril(L ~= 0) ~= tril(H ~= 0), 'rx');
-hold off;
-title(['Cholesky factor, flopcount=', num2str(flopcount)]);
+
+if ~quiet
+    subplot(132);
+    spy(tril(H));
+    hold on;
+    spy(tril(L ~= 0) ~= tril(H ~= 0), 'rx');
+    hold off;
+    title(['Cholesky factor, flopcount=', num2str(flopcount)]);
+end
 
 % choose a fill reducing permutation
 p = {amd(H), symrcm(H), colamd(H), colperm(H)};
@@ -43,14 +56,17 @@ sd.order = pnames{orderingidx};  % best KKT permutation name
 sd.L     = Lfacts{orderingidx};  % sparsity pattern of Cholesky factor
 sd.flops = flopcount;
 
-% visualize best structure
-figure(1);
-subplot(133);
-spy(tril(H(sd.p,sd.p)));
-hold on;
-spy(tril(sd.L ~= 0) ~= tril(H(sd.p,sd.p) ~= 0), 'rx');
-hold off;
-title(['Cholesky factor with ', sd.order, ', flopcount=', num2str(sd.flops)]);
+if ~quiet
+    % visualize best structure
+    % for the second two figures, nz denotes fill
+    subplot(133);
+    spy(tril(H(sd.p,sd.p)));
+    hold on;
+    spy(tril(sd.L ~= 0) ~= tril(H(sd.p,sd.p) ~= 0), 'rx');
+    hold off;
+    title(['Cholesky factor with ', sd.order, ', flopcount=', num2str(sd.flops)]);
+end
 
-% for the second two figures, nz denotes fill
+
+
 end
