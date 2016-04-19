@@ -38,10 +38,12 @@ nu = sparse(nu0);
 for iter=1:MAXITER
     % 1. Centering step: minimize t*f0(x) + phi(x) 
     %                    subject to Ax = b
-    rpri = (qp.C)*x - (qp.d);
-    h = 1./rpri;
+    rd = (qp.d) - (qp.C)*x;
+    rp = qp.A*x - qp.b;
+    h = 1./rd;
     H = [t*(qp.P) + (qp.C)'*spdiags(h.^2,0,nin,nin)*(qp.C), (qp.A)'; (qp.A), sparse(neq, neq)];
-    rhs = -[t*(qp.P*x + qp.q) + (qp.C)'*h; rpri];
+    rhs = -full([t*(qp.P*x + qp.q) + (qp.C)'*h; rp]);
+    sol = ldlsparse(H, sd.p, rhs); % sol = H\rhs
 end
 
 if k == MAXITER
