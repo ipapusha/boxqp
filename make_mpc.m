@@ -57,7 +57,11 @@ qp.A = sparse(i,j,entries,T*n+n,(T+1)*n+T*m);
 qp.b = sparse(1:n, ones(1,n), z, n*(T+1), 1);
 
 % 3. form inequality constraints CC*x <= d
-qp.C = spdiags([-ones(nx+nu,1), ones(nx+nu,1)], [-(nx+nu), 0], 2*(nx+nu), nx+nu);
-qp.d = sparse([repmat(xmax,T+1,1); repmat(umax,T,1); repmat(-xmin,T+1,1); repmat(-umin,T,1)]);
+%qp.C = spdiags([-ones(nx+nu,1), ones(nx+nu,1)], [-(nx+nu), 0], 2*(nx+nu), nx+nu);
+%qp.d = sparse([repmat(xmax,T+1,1); repmat(umax,T,1); repmat(-xmin,T+1,1); repmat(-umin,T,1)]);
+
+% 3. form inequality constraints G*x + s == h, s >= 0
+qp.G = [speye(nx+nu); -speye(nx+nu)];
+qp.h = [repmat(xmax,T+1,1); repmat(umax,T,1); repmat(-xmin,T+1,1); repmat(-umin,T,1)];
 
 end
