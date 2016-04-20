@@ -16,7 +16,7 @@ C = qp.C;
 
 % KKT matrix structure
 %H = [P + C'*C, A'; A, sparse(size(A,1), size(A,1))];
-H = [P + C'*C + 0.1*speye(size(A,1)), A'; A, -0.1*speye(size(A,1))];
+H = [P + C'*C + 0.1*speye(size(P,1)), A'; A, -0.1*speye(size(A,1))];
 
 if ~quiet
     % visualize KKT sparsity pattern
@@ -70,11 +70,6 @@ end
 
 % TODO: generate initial feasible point by a phase 1 method
 % find analytic center of Ax=b and Cx<=d
-
-% for now, just return zeros (as in MPC problem)
-sd.x0 = zeros(size(P,1),1);
-sd.nu0 = zeros(size(A,1),1);
-
 
 
 end

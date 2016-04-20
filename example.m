@@ -38,3 +38,7 @@ z = [9+(1:n)]';
 % prepare MPC QP
 qp = make_mpc(A, B, z, xmin, xmax, umin, umax, Q, Qf, R, T);
 sd = analyze_qp(qp);
+
+x0 = zeros(size(qp.P,1),1);
+nu0 = zeros(size(qp.A,1),1);
+[fval, xopt] = box_qp(qp, sd, x0, nu0);
