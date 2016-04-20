@@ -20,15 +20,26 @@ function [fval, x, ws, status] = boxqp(qp, varargin)
 %   ... = BOXQP(qp, [], ws0) no factorization caching
 %   ... = BOXQP(qp, [], []) initial centering + no factorization caching
 %   ... = BOXQP(qp) is the same as BOXQP(qp, [], [])
+%   ... = BOXQP(..., 'quiet') does not print anything during execution
 %   
 
 % determine calling style
-narginchk(1,3);
+narginchk(1,4);
+
+% determine if we should print progress
+quiet = false;
+quietidx = strcmp('quiet', varargin);
+if any(quietidx)
+    quiet = true;
+    varargin(quietidx) = [];
+end
+
+% figure out parameters
 sd = []; ws0 = [];
-if nargin >= 2
+if numel(varargin) >= 1
     sd = varargin{1};
 end
-if nargin >= 3
+if numel(varargin) >= 2
     ws0 = varargin{2};
 end
 
@@ -40,8 +51,8 @@ ny = size(qp.A, 1); % number of equality constraints
 
 % algorithm parameters
 MU  = 10;           % MU > 1
-GAPTOL = 1e-4;      % GAPTOL > 0, require duality gap m/t < GAPTOL
-FEASTOL = 1e-4;     % FEASTOL > 0, require |rpri|, |rdual| < FEASTOL
+GAPTOL = 1e-5;      % GAPTOL > 0, require duality gap m/t < GAPTOL
+FEASTOL = 1e-5;     % FEASTOL > 0, require |rpri|, |rdual| < FEASTOL
 ALPHA = 0.01;       % 0 < ALPHA < 1/2, typically 0.01 to 0.1
 BETA  = 0.5;        % 0 < BETA < 1, typically 0.3 to 0.8
 DELTA = 1e-2;       % DELTA > 0, added to make KKT system sqd
@@ -49,6 +60,8 @@ MAXITER = 100;      % maximum number of Newton steps
 
 % determine initial point by solving a closed form problem
 if isempty(ws0)
+    if ~quiet; fprintf('Calculating initial point...'); end;
+    
     % check structural invertability of KKT
     % TODO: actually check the rank
     assert(sprank(qp.A) == ny);
@@ -85,6 +98,8 @@ if isempty(ws0)
     else
         ws0.z = z + (1+ad);
     end
+    
+    if ~quiet; fprintf('done!\n'); end;
 end
 
 % check strict feasibility of initial point
@@ -93,6 +108,8 @@ assert(~isempty(ws0.x));
 assert(~isempty(ws0.y));
 assert(all(ws0.s >= 0));
 assert(all(ws0.z >= 0));
+
+if ~quiet; fprintf('Iterating:\n'); end;
 
 % primal dual path following method
 x = ws0.x;
@@ -139,13 +156,49 @@ for iter=1:MAXITER
     % 3. Modified backtracking line search
     s1 = maxstep(z, dz);
     s2 = maxstep(s, ds);
-    step = min(s1, s2);
+    step = 0.99*min(s1, s2);
+    
     % multiply step by BETA until residual is decreased
+    rcur = norm([rx; rs; rz; ry], 2);
+    while 1
+        % new point
+        xn = x+step*dx; 
+        sn = s+step*ds; 
+        zn = z+step*dz; 
+        yn = y+step*dy;
+        
+        % new gap
+        gapn = zn'*sn;
+        mun = gapn/(MU*nz);
+        
+        % new residuals
+        rxn = qp.P*xn + qp.q + qp.G'*zn + qp.A'*yn;
+        rsn = (zn.*sn) - mun;
+        rzn = qp.G*xn + sn - qp.h;
+        ryn = qp.A*xn - qp.b;
+        
+        % quit line search if residual is decreased
+        if norm([rxn; rsn; rzn; ryn], 2) <= (1 - ALPHA*step)*rcur
+            break;
+        end
+        
+        % otherwise, decrease step
+        step = BETA*step;
+    end
     
     % 4. Update iterates
+    if ~quiet
+        fprintf('%-2d gap: %-11g, rx: %6.2e, rs: %6.2e, rz: %6.2e, ry: %6.2e\n', ...
+                iter, gap, norm(rx), norm(rs), norm(rz), norm(ry));
+    end
+    
+    x = x+step*dx;
+    s = s+step*ds;
+    z = z+step*dz;
+    y = y+step*dy;
 end
 
-if iter == MAXITER
+if ~quiet && (iter == MAXITER)
     fprintf('Failed to converge in MAXITER=%d iterations\n', MAXITER);
 end
 
