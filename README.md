@@ -12,6 +12,8 @@ subject to A*x = b,     (dual var y)
 ```
 with variables `x`, `s` and problem data `P`, `q`, `A`, `b`, `G`, and `h`.
 
+## Screenshot
+![Offline analysis](https://raw.githubusercontent.com/ipapusha/boxqp/master/fig/structures.png)
 
 ## Usage
 In its simplest form, `boxqp` can be called with the following syntax:
@@ -75,8 +77,6 @@ path.
 |CVXGEN (Atom)           |                  13 |       76.9 |
 |CVXGEN (i7)             |                0.97 |       1031 |
 
-### Screenshot
-![Offline analysis](https://raw.githubusercontent.com/ipapusha/boxqp/master/fig/structures.png)
 ## References
 * L. Vandenberghe The CVXOPT linear and quadratic cone program solvers
   \[[pdf](http://www.seas.ucla.edu/~vandenbe/publications/coneprog.pdf)\]
