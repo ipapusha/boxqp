@@ -42,8 +42,9 @@ sd  = boxqp_analyze(qp, ws0);
     * `P`, `q`, `A`, `b`, `G`, `h`
 2. `boxqp_initial.m` obtains an initial guess used in the path
     following method. The structure `ws0` contains warm-start information.
-3. `boxqp_analyze.m` performs symbolic analysis of the KKT matrix and
-   chooses the best fill-reducing permutation. The structure `sd` contains offline analysis information.
+3. `boxqp_analyze.m` performs symbolic analysis of the KKT matrix and chooses
+   the best fill-reducing permutation. The structure `sd` contains offline
+   analysis information.
 4. `boxqp.m` the solver itself
 
 
@@ -70,10 +71,10 @@ path.
 ### MPC problem, n = 8 (states), m = 4 (inputs), T = 20 (horizon)
 |                        | Avg Solve time (ms) | Rate (Hz)  |
 | ---------------------- |--------------------:| ----------:|
-|naive CVX+sdpt3         |             2077.20 |        0.5 |
+|naive CVX+sdpt3         |             2079.81 |        0.5 |
 |optimized CVX+sdpt3     |              422.88 |        2.4 |
-|**boxqp** (no structure)|               29.57 |       33.8 |
-|**boxqp** (structure)   |               12.55 |       79.7 |
+|**boxqp** (no structure)|               21.44 |       46.6 |
+|**boxqp** (structure)   |                7.88 |      126.9 |
 |CVXGEN (Atom)           |                  13 |       76.9 |
 |CVXGEN (i7)             |                0.97 |       1031 |
 
