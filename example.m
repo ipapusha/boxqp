@@ -6,8 +6,8 @@ randn('state', 0);
 %m = 1;
 %T = 4;
 
-n = 4;
-m = 8;
+n = 8;
+m = 4;
 T = 20;
 
 % generate A, B
@@ -78,6 +78,7 @@ fprintf('        with CVX: %.2f ms (%.1f Hz)\n', ...
 
 
 %% check actual problem
+tic;
 cvx_begin;
     variable x(n,T+1);
     variable u(m,T);
@@ -93,3 +94,6 @@ cvx_begin;
         0.5*sum(square_pos(norms(sqrtm(R)*u,2))) + ...
         0.5*sum(square_pos(norms(sqrtm(Qf)*x(:,T+1),2))) );
 cvx_end;
+avgtime = toc/1;
+fprintf('       naive CVX: %.2f ms (%.1f Hz)\n', ...
+        1000*avgtime, 1/avgtime);
