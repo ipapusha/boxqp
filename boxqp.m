@@ -83,6 +83,10 @@ if ~quiet;
     fprintf('===============================================\n'); 
 end;
 
+% keep track of status
+status = struct;
+status.desc = 'in progress';
+
 % primal dual path following method
 x = ws0.x;
 s = ws0.s;
@@ -101,6 +105,7 @@ for iter=1:MAXITER
     if ((norm([rz; ry], 2) <= FEASTOL) && ... % primal feas
         (norm(rx, 2) <= FEASTOL) && ...       % dual feas
         (gap <= GAPTOL))                      % primal - dual
+        status.desc = 'solved';
         break;
     end
     
@@ -166,13 +171,14 @@ for iter=1:MAXITER
     % detect infeasibility
     rgap = abs((gapn - gap)/gap);
     if (rgap <= RGAPTOL) && (gap > GAPTOL)
+        status.desc = 'infeasible';
         break;
     end
     
     % 4. Update iterates
     if ~quiet
-        fprintf('%-2d gap: %-11g, rgap: %6.2e, rx: %6.2e, rs: %6.2e, rz: %6.2e, ry: %6.2e\n', ...
-                iter, gap, rgap, norm(rx), norm(rs), norm(rz), norm(ry));
+        fprintf('%-2d gap: %-11g, rgap: %6.2e, rx: %6.2e, rs: %6.2e, rz: %6.2e, ry: %6.2e, step: %6.2g\n', ...
+                iter, gap, rgap, norm(rx), norm(rs), norm(rz), norm(ry), step);
     end
     
     x = x+step*dx;
@@ -189,12 +195,8 @@ ws.s = s;
 ws.z = z;
 ws.y = y;
 
-status = struct;
 status.iter = iter;
-status.desc = 'solved';
-if (rgap <= RGAPTOL) && (gap > GAPTOL)
-    status.desc = 'infeasible';
-elseif (iter == MAXITER)
+if (iter == MAXITER)
     status.desc = 'max iterations reached';
 end
 
